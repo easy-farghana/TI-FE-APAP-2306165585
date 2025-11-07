@@ -1,4 +1,4 @@
-export interface CommonResponse<T> {
+export interface CommonResponseInterface<T> {
   status: number;
   message: string;
   timestamp: Date;

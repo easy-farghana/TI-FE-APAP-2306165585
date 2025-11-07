@@ -12,6 +12,16 @@ export default defineConfig({
     vueDevTools(),
     tailwindcss(),
   ],
+  server: {
+    proxy: {
+      '/wilayah': {
+        target: 'https://wilayah.id',
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/wilayah/, '')
+      }
+    }
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
