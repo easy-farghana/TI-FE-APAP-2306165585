@@ -43,9 +43,12 @@ export const usePropertiesStore = defineStore('properties', {
         const response = await axios.get<CommonResponseInterface<PropertyResponseDTO>>(`${baseUrl}/${propertyId}`, { params });
         return response.data.data;
       } catch (error: any) {
-        this.error = error instanceof Error ? error.message : 'Unknown error';
-        toast.error(`Failed to load property: ${this.error}`);
-        return null;
+        const message =
+          error.response?.data?.message || 
+          error.message || 
+          'Failed to load details';
+
+        toast.error(message);
       } finally {
         this.loading = false;
       }
@@ -59,7 +62,29 @@ export const usePropertiesStore = defineStore('properties', {
         );
         return response.data.data;
       } catch (error: any) {
-        throw error;
+        const message =
+          error.response?.data?.message || 
+          error.message || 
+          'Failed to create property';
+
+        toast.error(message);
+      }
+    },
+
+    async addRoomType(propertyId: string, payload: { roomTypes: any[] }) {
+      try {
+        const response = await axios.post(
+          `${baseUrl}/add-room-type/${propertyId}`, 
+          payload
+        );
+        return response.data;
+      } catch (error: any) {
+        const message =
+          error.response?.data?.message || 
+          error.message || 
+          'Failed to add room type';
+
+        toast.error(message);
       }
     },
 
@@ -69,6 +94,24 @@ export const usePropertiesStore = defineStore('properties', {
         // Refresh the properties list after deletion
         await this.fetchProperties();
         return true;
+      } catch (error: any) {
+        const message =
+          error.response?.data?.message || 
+          error.message || 
+          'Failed to delete property';
+        toast.error(message);
+        return null;
+      }
+    },
+
+    async updateProperty(payload: { property: { propertyId: string; propertyName: string; address: string; description: string }, roomTypes: any[] }) {
+      try {
+        const response = await axios.put<CommonResponseInterface<void>>(
+          `${baseUrl}/update`,
+          payload
+        );
+  
+        return response.data;
       } catch (error: any) {
         throw error;
       }

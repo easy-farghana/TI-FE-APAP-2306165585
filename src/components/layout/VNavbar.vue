@@ -20,9 +20,9 @@ const getLinkClass = (path: string) =>
 
     <!-- Right side: Navigation -->
     <nav class="flex gap-6">
-      <RouterLink to="/" :class="getLinkClass('/')">Home</RouterLink>
-      <!-- Add more links here -->
       <RouterLink to="/property" :class="getLinkClass('/property')">Property</RouterLink>
+      <RouterLink to="/bookings" :class="getLinkClass('/bookings')">Bookings</RouterLink>
+      <RouterLink to="/bookings/chart" :class="getLinkClass('/bookings/chart')">Statistic</RouterLink>
     </nav>
   </header>
 </template>

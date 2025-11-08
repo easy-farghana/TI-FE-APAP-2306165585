@@ -19,6 +19,44 @@ interface Province {
   name: string;
 }
 
+const baseUrl = import.meta.env.VITE_API_URL
+const showMaintenanceModal = ref(false);
+const selectedRoomId = ref<string | null>(null);
+const maintenanceStart = ref('');
+const maintenanceEnd = ref('');
+
+const openMaintenanceModal = (roomId: string) => {
+  selectedRoomId.value = roomId;
+  maintenanceStart.value = '';
+  maintenanceEnd.value = '';
+  showMaintenanceModal.value = true;
+};
+
+const submitMaintenance = async () => {
+  if (!selectedRoomId.value) return;
+
+  if (!maintenanceStart.value || !maintenanceEnd.value) {
+    toast.error('Please fill both start and end date/time.');
+    return;
+  }
+
+  const payload = {
+    roomID: selectedRoomId.value,
+    maintenanceStart: maintenanceStart.value,
+    maintenanceEnd: maintenanceEnd.value,
+  };
+  console.log(payload)
+  try {
+    await axios.post(`${baseUrl}/property/maintenance/add`, payload);
+    toast.success('Maintenance added successfully');
+    showMaintenanceModal.value = false;
+  } catch (error: any) {
+    console.error(error);
+    toast.error(error.response?.data?.message || 'Failed to add maintenance');
+  }
+};
+
+
 const provinces = ref<Record<string, string>>({}); 
 
 const fetchProvinces = async () => {
@@ -61,8 +99,13 @@ onMounted(async () => {
     await fetchProvinces();
     
     const propertyId = route.params.id as string;
-    property.value = await propertyStore.fetchPropertyById(propertyId);
-    
+    property.value = await propertyStore.fetchPropertyById(propertyId) as PropertyResponseDTO;
+    const today = new Date();
+    const tomorrow = new Date();
+    tomorrow.setDate(today.getDate() + 1);
+
+    checkInDate.value = today.toISOString().split('T')[0]!;
+    checkOutDate.value = tomorrow.toISOString().split('T')[0]!;
     console.log('Property province:', property.value?.province);
     console.log('Available provinces:', Object.keys(provinces.value));
   } catch (error) {
@@ -78,11 +121,12 @@ const typeLabel = (type: number) => {
 const checkInDate = ref('');
 const checkOutDate = ref('');
 
-const applyFilter = () => {
+const applyFilter = async () => {
   const propertyId = route.params.id as string;
   const checkInDateTime = checkInDate.value ? `${checkInDate.value}T14:00:00` : '';
   const checkOutDateTime = checkOutDate.value ? `${checkOutDate.value}T12:00:00` : '';
-  propertyStore.fetchPropertyById(propertyId, checkInDateTime, checkOutDateTime);
+  await propertyStore.fetchPropertyById(propertyId, checkInDateTime, checkOutDateTime);
+  toast.success('Filter applied successfully');
 };
 
 const confirmDelete = async () => {
@@ -90,10 +134,8 @@ const confirmDelete = async () => {
   
   try {
     await propertyStore.deleteProperty(propertyToDelete.value);
-    toast.success('Property deleted successfully');
-    router.push('/property');
   } catch (error) {
-    toast.error('Failed to delete property');
+
   } finally {
     showDeleteModal.value = false;
     propertyToDelete.value = null;
@@ -121,8 +163,23 @@ const handleDelete = (propertyId: string) => {
           <VChip :activeStatus="property.activeStatus" />
         </div>
         <div class="space-x-3">
-          <VButton variant="primary" :disabled="property.activeStatus==0">Add Room</VButton>
-          <VButton variant="warning" :disabled="property.activeStatus==0">Update Property</VButton>
+          <VButton 
+            variant="primary" 
+            :disabled="property.activeStatus==0"
+            @click="router.push({
+              path: `/property/updateroom/${property.propertyID}`,
+              query: { type: property.type }
+            })"
+          >
+            Add Room
+          </VButton>
+           <VButton
+            variant="warning"
+            :disabled="property.activeStatus==0"
+            @click="router.push({ path: `/property/update/${property.propertyID}` })"
+          >
+            Update Property
+          </VButton>
           <VButton 
             variant="danger" 
             :disabled="property.activeStatus==0"  
@@ -234,19 +291,30 @@ const handleDelete = (propertyId: string) => {
                 </td>
                 <td class="px-4 py-3 text-center">
                   <div class="space-x-2">
-                    <VButton 
-                      variant="info" 
-                      size="sm"
-                      :disabled="room.availabilityStatus === 0"
-                    >
-                      Book
-                    </VButton>
-                    <VButton 
-                      variant="warning" 
-                      size="sm"
-                    >
-                      Maintenance
-                    </VButton>
+                  <VButton 
+                    variant="info" 
+                    size="sm"
+                    :disabled="room.availabilityStatus === 0"
+                    @click="router.push({
+                      name: 'bookings-create-a',
+                      params: { 
+                        roomID: room.roomID, 
+                        roomName: room.name, 
+                        roomTypeID: roomType.roomTypeID, 
+                        capacity: roomType.capacity 
+                      }
+                    })"
+                  >
+                    Book
+                  </VButton>
+
+                  <VButton 
+                    variant="warning" 
+                    size="sm"
+                    @click="openMaintenanceModal(room.roomID)"
+                  >
+                    Maintenance
+                  </VButton>
                   </div>
                 </td>
               </tr>
@@ -254,6 +322,7 @@ const handleDelete = (propertyId: string) => {
           </table>
         </div>
       </div>
+      <VButton variant="secondary" @click="router.push('/property')">Back</VButton>
     </div>
     <VConfirmModal
       :show="showDeleteModal"
@@ -265,5 +334,39 @@ const handleDelete = (propertyId: string) => {
       @confirm="confirmDelete"
       @cancel="showDeleteModal = false"
     />
+
+  <!-- Maintenance Modal -->
+  <div 
+    v-if="showMaintenanceModal" 
+    class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
+  >
+    <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+      <h2 class="text-xl font-semibold mb-4">Add Maintenance Schedule</h2>
+
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700">Start Date & Time</label>
+        <input 
+          type="datetime-local" 
+          v-model="maintenanceStart" 
+          class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+        />
+      </div>
+
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700">End Date & Time</label>
+        <input 
+          type="datetime-local" 
+          v-model="maintenanceEnd" 
+          class="mt-1 w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+        />
+      </div>
+
+      <div class="flex justify-end space-x-3 mt-6">
+        <VButton variant="secondary" @click="showMaintenanceModal = false">Cancel</VButton>
+        <VButton variant="primary" @click="submitMaintenance">Submit</VButton>
+      </div>
+    </div>
+  </div>
+
   </div>
 </template>

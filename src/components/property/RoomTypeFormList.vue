@@ -4,7 +4,7 @@ import VButton from '@/components/common/VButton.vue';
 
 const props = defineProps<{
   roomTypes: any[];
-  availableRoomTypes: string[];
+  availableRoomTypes: readonly string[] | string[]; 
 }>();
 
 const emit = defineEmits(['add-room-type', 'remove-room-type']);
