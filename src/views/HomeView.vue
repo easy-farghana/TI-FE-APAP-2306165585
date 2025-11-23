@@ -10,7 +10,9 @@ const { statistics, loading, error } = storeToRefs(statisticsStore);
 
 onMounted(async () => {
   await statisticsStore.fetchStatistics();
-  console.log(statistics)
+  console.log(statistics);
+  const apiUrl = import.meta.env.VITE_API_URL
+  console.log("Api used: " + apiUrl);
 });
 
 </script>
