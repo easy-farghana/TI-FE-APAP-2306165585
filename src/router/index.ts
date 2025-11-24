@@ -65,7 +65,7 @@ const router = createRouter({
       component: CreateBookingsView,
     },
     {
-      path: '/booking/add/:roomID/:roomName/:roomTypeID/:capacity',
+      path: '/booking/add/:propertyID/:roomID/:roomName/:roomTypeID/:capacity',
       name: 'bookings-create-a',
       component: BookFromPropertyView,
     },

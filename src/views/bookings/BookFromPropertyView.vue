@@ -13,6 +13,7 @@ const router = useRouter();
 const bookingStore = useBookingStore();
 
 // --- Room data from route params or history.state
+const propertyID = ref<string>(route.params.propertyID as string || '');
 const roomID = ref<string>(route.params.roomID as string || '');
 const roomName = ref<string>(route.params.roomName as string || '');
 const roomTypeID = ref<string>(route.params.roomTypeID as string || '');
@@ -29,7 +30,6 @@ const checkOutDate = ref(formatISO(checkOutBase, { representation: 'date' }));
 // --- Form object
 const form = ref<AddBookingRequest>({
   roomID: roomID.value,
-  roomTypeID: roomTypeID.value,
   checkInDate: `${checkInDate.value}T14:00:00`,
   checkOutDate: `${checkOutDate.value}T12:00:00`,
   capacity: Number(capacity.value),

@@ -7,6 +7,12 @@ import { storeToRefs } from 'pinia';
 const statisticsStore = useStatisticsStore();
 
 const { statistics, loading, error } = storeToRefs(statisticsStore);
+import { ref } from 'vue';
+import { openSSOPopup } from '@/utils/sso'; // Adjust path as needed
+
+const isLoading = ref(false);
+const errorMessage = ref('');
+const currentUser = ref('');
 
 onMounted(async () => {
   await statisticsStore.fetchStatistics();
@@ -14,7 +20,29 @@ onMounted(async () => {
   const apiUrl = import.meta.env.VITE_API_URL
   console.log("Api used: " + apiUrl);
 });
+const handleConnect = async () => {
+  isLoading.value = true;
+  errorMessage.value = '';
 
+  try {
+    // This line waits until the popup flow is totally finished
+    const payload = await openSSOPopup("http://localhost:5174/sso-popup");
+
+    if (payload.token) {
+      // Success!
+      localStorage.setItem('token', payload.token);
+      currentUser.value = payload.username || 'Unknown';
+      alert('Successfully Connected!');
+    } else {
+      errorMessage.value = "Login failed: No token received.";
+    }
+  } catch (error: any) {
+    // Handles if user closes window or popup is blocked
+    errorMessage.value = error.message;
+  } finally {
+    isLoading.value = false;
+  }
+};
 </script>
 
 <template>
@@ -52,6 +80,13 @@ onMounted(async () => {
             {{ statistics?.totalProperties ?? 0 }}
           </p>
           <p class="text-sm text-gray-500 mt-1">All registered properties</p>
+              <button 
+                @click="handleConnect" 
+                :disabled="isLoading"
+                class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+              >
+                {{ isLoading ? 'Connecting...' : 'Connect with Flight App' }}
+              </button>
         </div>
 
         <!-- Total Bookings -->

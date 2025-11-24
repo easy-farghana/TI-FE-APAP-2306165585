@@ -298,6 +298,7 @@ const handleDelete = (propertyId: string) => {
                     @click="router.push({
                       name: 'bookings-create-a',
                       params: { 
+                        propertyID: property.propertyID,
                         roomID: room.roomID, 
                         roomName: room.name, 
                         roomTypeID: roomType.roomTypeID, 

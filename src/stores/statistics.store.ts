@@ -1,11 +1,11 @@
 import { defineStore } from 'pinia';
-import axios from 'axios';
+import api from '@/utils/api';               // ← use custom axios instance
 import { toast } from 'vue-sonner';
 import type { Statistic } from '@/interfaces/response/statistic.interface';
 import type { CommonResponseInterface } from '@/interfaces/common.response.interface';
 
-const baseUrl = import.meta.env.VITE_API_URL
-const baseStatisticsUrl = import.meta.env.VITE_API_URL + '/statistics';
+const baseUrl = import.meta.env.VITE_API_URL;
+const baseStatisticsUrl = `${baseUrl}/statistics`;
 
 export interface IncomeStatistic {
   propertyName: string;
@@ -26,7 +26,7 @@ export const useStatisticsStore = defineStore('statistics', {
       this.error = null;
 
       try {
-        const response = await axios.get<CommonResponseInterface<Statistic>>(baseStatisticsUrl);
+        const response = await api.get<CommonResponseInterface<Statistic>>(baseStatisticsUrl);
         this.statistics = response.data.data;
 
         if (!this.statistics) toast.warning('Data statistik kosong');
@@ -46,8 +46,8 @@ export const useStatisticsStore = defineStore('statistics', {
       this.error = null;
 
       try {
-        const url = `${baseUrl}/chart?month=${month}&year=${year}`;
-        const response = await axios.get<CommonResponseInterface<IncomeStatistic[]>>(url);
+        const url = `/chart?month=${month}&year=${year}`;
+        const response = await api.get<CommonResponseInterface<IncomeStatistic[]>>(url);
 
         this.incomeStatistics = response.data.data || [];
 

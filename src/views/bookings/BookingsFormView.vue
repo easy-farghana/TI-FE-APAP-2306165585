@@ -17,7 +17,6 @@ const isUpdateMode = !!bookingID;
 
 const form = ref<AddBookingRequest>({
   roomID: '',
-  roomTypeID: '',
   checkInDate: '',
   checkOutDate: '',
   capacity: 1,
@@ -50,8 +49,7 @@ onMounted(async () => {
     if (!bookingData) return;
 
     form.value = {
-      roomID: bookingData.roomID,       
-      roomTypeID: bookingData.roomTypeID || '',
+      roomID: bookingData.roomID,
       checkInDate: bookingData.checkInDate,
       checkOutDate: bookingData.checkOutDate,
       capacity: bookingData.capacity,
@@ -61,19 +59,17 @@ onMounted(async () => {
       customerPhone: bookingData.customerPhone,
       isBreakfast: bookingData.isBreakfast ?? false,
     };
-    console.log('Form data:', form.value);
-    // Set checkIn/Out date
-    checkInDate.value = bookingData.checkInDate.split('T')[0];
-    checkOutDate.value = bookingData.checkOutDate.split('T')[0];
 
-    selectedPropertyId.value = bookingData.roomID.split('-').slice(0,3).join('-');
-
+    checkInDate.value = bookingData.checkInDate?.split('T')[0] || '';
+    checkOutDate.value = bookingData.checkOutDate?.split('T')[0] || '';
+    selectedPropertyId.value = bookingData.propertyID;
 
     await onPropertyChange();
 
     selectedRoomTypeId.value = bookingData.roomTypeID;
-    onRoomTypeChange();
+    await onRoomTypeChange();
   }
+
 });
 
 
@@ -92,16 +88,16 @@ async function onPropertyChange() {
 
   roomTypes.value = Object.values(grouped);
   rooms.value = [];
-  form.value.roomTypeID = '';
-  form.value.roomID = '';
+  form.value.roomID = ''; 
 }
+
 
 function onRoomTypeChange() {
   const roomType = roomTypes.value.find(rt => rt.roomTypeID === selectedRoomTypeId.value);
   rooms.value = roomType?.listRoom ?? [];
-  form.value.roomTypeID = selectedRoomTypeId.value;
-  form.value.roomID = '';
+  form.value.roomID = ''; 
 }
+
 
 async function submitBooking() {
   if (!form.value.roomID) return toast.error('Please select a room');
