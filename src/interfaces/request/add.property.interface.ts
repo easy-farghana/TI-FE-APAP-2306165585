@@ -4,8 +4,8 @@ export interface AddPropertyRequestDTO {
   address: string;
   province: number;
   description: string;
-  ownerId: string;
-  ownerName: string;
+  ownerId?: string;
+  ownerName?: string;
 }
 
 export interface AddRoomTypeRequestDTO {

@@ -3,7 +3,9 @@ export interface SSOPayload {
   username: string | null;
 }
 
-export function openSSOPopup(providerUrl: string = "http://localhost:5173/sso-popup"): Promise<SSOPayload> {
+const baseAuthURL = import.meta.env.VITE_AUTH_URL;
+
+export function openSSOPopup(providerUrl: string = baseAuthURL + "/sso-popup"): Promise<SSOPayload> {
   return new Promise((resolve, reject) => {
 
     // 1. Calculate center of screen for a nice popup experience

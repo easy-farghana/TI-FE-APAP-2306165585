@@ -9,8 +9,6 @@ export interface AccommodationBookingResponseDTO {
   customerName: string;
   customerEmail: string;
   customerPhone: string;
-  refund: number;
-  extraPay: number;
   capacity: number;
   roomName: string;
   createdDate: string;

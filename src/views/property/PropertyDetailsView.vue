@@ -12,6 +12,7 @@ import axios from 'axios';
 import { toast } from 'vue-sonner';
 import VConfirmModal from '@/components/common/VConfirmModal.vue';
 import { ro } from 'date-fns/locale';
+import { isAccommodationOwner, isAdmin } from '@/utils/rbac';
 
 
 interface Province {
@@ -164,6 +165,7 @@ const handleDelete = (propertyId: string) => {
         </div>
         <div class="space-x-3">
           <VButton 
+            v-if="isAdmin() || isAccommodationOwner()"
             variant="primary" 
             :disabled="property.activeStatus==0"
             @click="router.push({
@@ -174,6 +176,7 @@ const handleDelete = (propertyId: string) => {
             Add Room
           </VButton>
            <VButton
+            v-if="isAdmin() || isAccommodationOwner()"
             variant="warning"
             :disabled="property.activeStatus==0"
             @click="router.push({ path: `/property/update/${property.propertyID}` })"
@@ -181,6 +184,7 @@ const handleDelete = (propertyId: string) => {
             Update Property
           </VButton>
           <VButton 
+            v-if="isAdmin() || isAccommodationOwner()"
             variant="danger" 
             :disabled="property.activeStatus==0"  
             @click="handleDelete(property.propertyID)"
@@ -312,6 +316,7 @@ const handleDelete = (propertyId: string) => {
                   <VButton 
                     variant="warning" 
                     size="sm"
+                    :disabled="property.activeStatus === 0 || room.availabilityStatus === 0"
                     @click="openMaintenanceModal(room.roomID)"
                   >
                     Maintenance

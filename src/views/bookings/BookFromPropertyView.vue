@@ -13,10 +13,8 @@ const router = useRouter();
 const bookingStore = useBookingStore();
 
 // --- Room data from route params or history.state
-const propertyID = ref<string>(route.params.propertyID as string || '');
 const roomID = ref<string>(route.params.roomID as string || '');
 const roomName = ref<string>(route.params.roomName as string || '');
-const roomTypeID = ref<string>(route.params.roomTypeID as string || '');
 const capacity = ref<string>(route.params.capacity as string || '');
 
 // --- Dates: default today 14:00 and tomorrow 12:00

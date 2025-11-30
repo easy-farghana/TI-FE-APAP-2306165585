@@ -7,6 +7,7 @@ import type {
 } from '@/interfaces/response/property.interface';
 import type { CommonResponseInterface } from '@/interfaces/common.response.interface';
 import type { PropertyTransactionRequest } from '@/interfaces/request/add.property.interface';
+import router from '@/router';
 
 const baseUrl = import.meta.env.VITE_API_URL + '/property';
 
@@ -18,21 +19,29 @@ export const usePropertiesStore = defineStore('properties', {
   }),
 
   actions: {
-    async fetchProperties() {
+    async fetchPropertiesFiltered(filters: {
+      name?: string;
+      type?: number;
+      province?: number;
+    }) {
       this.loading = true;
       this.error = null;
+
       try {
-        const res = await api.get<CommonResponseInterface<AllProperty[]>>(baseUrl);
+        const params = new URLSearchParams();
+        if (filters.name) params.append('name', filters.name);
+        if (filters.type) params.append('type', String(filters.type));
+        if (filters.province) params.append('province', String(filters.province));
+
+        const res = await api.get<CommonResponseInterface<AllProperty[]>>(baseUrl, {
+          params,
+        });
+
         this.properties = res.data.data ?? [];
-
-        if (!this.properties.length) {
-          toast.warning('Tidak ada properti ditemukan');
-        }
-
         return this.properties;
       } catch (err: any) {
-        this.error = err instanceof Error ? err.message : 'Unknown error';
-        toast.error(`Gagal memuat properti: ${this.error}`);
+        this.error = err.message || 'Unknown error';
+        toast.error(`Failed to fetch properties: ${this.error}`);
         return null;
       } finally {
         this.loading = false;
@@ -81,6 +90,7 @@ export const usePropertiesStore = defineStore('properties', {
           'Failed to create property';
 
         toast.error(message);
+        throw error
       }
     },
 
@@ -109,7 +119,9 @@ export const usePropertiesStore = defineStore('properties', {
         );
 
         // Refresh list after deletion
-        await this.fetchProperties();
+        await this.fetchPropertiesFiltered({});
+        toast.success("Succesfully deleted property");
+        router.push("/property");
         return true;
       } catch (error: any) {
         const message =

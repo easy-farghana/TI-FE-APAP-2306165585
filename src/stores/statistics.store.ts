@@ -46,7 +46,7 @@ export const useStatisticsStore = defineStore('statistics', {
       this.error = null;
 
       try {
-        const url = `/chart?month=${month}&year=${year}`;
+        const url = baseUrl + `/booking/chart?month=${month}&year=${year}`;
         const response = await api.get<CommonResponseInterface<IncomeStatistic[]>>(url);
 
         this.incomeStatistics = response.data.data || [];

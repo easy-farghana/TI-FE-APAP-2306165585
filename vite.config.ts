@@ -13,6 +13,9 @@ export default defineConfig({
     tailwindcss(),
   ],
   server: {
+    allowedHosts: [
+      "funny-tires-stay.loca.lt/",
+    ],
     proxy: {
       '/wilayah': {
         target: 'https://wilayah.id',

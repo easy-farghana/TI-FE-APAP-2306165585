@@ -10,6 +10,10 @@ import BookingsDetailsView from '@/views/bookings/BookingsDetailsView.vue'
 import CreateBookingsView from '@/views/bookings/BookingsFormView.vue'
 import BookFromPropertyView from '@/views/bookings/BookFromPropertyView.vue'
 import IncomeStatisticsView from '@/views/statistics/IncomeStatisticsView.vue'
+import { toast } from 'vue-sonner'
+import { isAccommodationOwner, isAdmin, isAuthenticated, isCustomer } from '@/utils/rbac'
+import BillView from '@/views/bills/BillView.vue'
+import BillDetailsView from '@/views/bills/BillDetailsView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -70,11 +74,59 @@ const router = createRouter({
       component: BookFromPropertyView,
     },
     {
-      path: '/chart',
+      path: '/bookings/chart',
       name: 'income-statistics',
       component: IncomeStatisticsView,
     },
+    {
+      path: '/bills',
+      name: 'bills',
+      component: BillView,
+    },
+    {
+      path: '/bills/customer',
+      name: 'bills-customer',
+      component: BillView,
+    },
+    {
+      path: '/bill/:billId',
+      name: 'bills-details',
+      component: BillDetailsView,
+    },
+    
   ],
 })
+const routeRoles: Record<string, () => boolean> = {
+  '/bills/customer': isCustomer,
+  '/bills/service': isAdmin,
+  '/bills': isAdmin,
+  '/bill': () => isAdmin() || isCustomer(), 
+  '/statistics': isAdmin,
+  '/booking': () => isAdmin() || isCustomer() || isAccommodationOwner(),
+};
+
+// Navigation guard for RBAC
+router.beforeEach((to, _, next) => {
+  const auth = isAuthenticated();
+
+  // Redirect unauthenticated
+  if (!auth && !['/', '/login', '/register'].includes(to.path)) {
+    toast.error('Token expired, please log in with Flight App');
+    return next('/');
+  }
+
+  // Find matching route
+  const match = Object.keys(routeRoles).find(path => to.path.startsWith(path));
+
+  if (match && routeRoles[match]) {
+    if (!routeRoles[match]()) {
+      toast.error('You do not have permission to access this page');
+      return next('/');
+    }
+}
+
+  next();
+});
+
 
 export default router
