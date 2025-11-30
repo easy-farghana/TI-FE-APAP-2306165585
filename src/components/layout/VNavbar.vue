@@ -4,7 +4,7 @@ import { openSSOPopup } from '@/utils/sso'
 import { ref, watchEffect } from 'vue'
 import { removeLocalStorage } from '@/utils/auth';
 import { toast } from 'vue-sonner';
-import { isAdmin, isAuthenticated, isCustomer, isPartOfService } from '@/utils/rbac';
+import { isAccommodationOwner, isAdmin, isAuthenticated, isCustomer, isPartOfService } from '@/utils/rbac';
 
 if (sessionStorage.getItem("logout_success") === "1") {
   sessionStorage.removeItem("logout_success");
@@ -27,6 +27,8 @@ const errorMessage = ref('');
 // Load persistent values from localStorage
 const currentUser = ref(localStorage.getItem('username'));
 const currentToken = ref(localStorage.getItem('token'));
+const currentRole = ref(localStorage.getItem('role'));
+
 
 // Keep localStorage synced with reactive state
 watchEffect(() => {
@@ -35,6 +37,9 @@ watchEffect(() => {
   }
   if (currentToken.value) {
     localStorage.setItem('token', currentToken.value);
+  }
+  if (currentRole.value) {
+    localStorage.setItem('role', currentRole.value);
   }
 });
 
@@ -49,6 +54,7 @@ const handleConnect = async () => {
       // Save to reactive state (auto-syncs to localStorage)
       currentToken.value = payload.token;
       currentUser.value = payload.username || 'Unknown User';
+      currentRole.value = payload.role || 'Unknown Role';
       sessionStorage.setItem("login_success", "1");
       window.location.reload();
     } 
@@ -102,7 +108,7 @@ const getLinkClass = (path: string) =>
     <nav class="flex gap-6">
       <RouterLink to="/property" :class="getLinkClass('/property')">Property</RouterLink>
       <RouterLink to="/bookings" :class="getLinkClass('/bookings')">Bookings</RouterLink>
-      <RouterLink v-if="isAdmin()" to="/bookings/chart" :class="getLinkClass('/bookings/chart')">Statistic</RouterLink>
+      <RouterLink v-if="isAdmin() || isAccommodationOwner()" to="/bookings/chart" :class="getLinkClass('/bookings/chart')">Statistic</RouterLink>
       <RouterLink v-if="isPartOfService()" to="/bills/service" :class="getLinkClass('/bills')">Service Bills</RouterLink>
       <RouterLink v-if="isCustomer()"to="/bills/customer" :class="getLinkClass('/bills')">My Bills</RouterLink>
 

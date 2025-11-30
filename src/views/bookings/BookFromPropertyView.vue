@@ -31,7 +31,6 @@ const form = ref<AddBookingRequest>({
   checkInDate: `${checkInDate.value}T14:00:00`,
   checkOutDate: `${checkOutDate.value}T12:00:00`,
   capacity: Number(capacity.value),
-  customerID: '',
   customerName: '',
   customerEmail: '',
   customerPhone: '',
@@ -129,15 +128,6 @@ onMounted(() => {
 
       <!-- Customer Info -->
       <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium mb-1">Customer ID</label>
-          <input
-            v-model="form.customerID"
-            type="text"
-            placeholder="Enter customer ID"
-            class="w-full border rounded-md p-2"
-          />
-        </div>
         <div>
           <label class="block text-sm font-medium mb-1">Customer Name</label>
           <input

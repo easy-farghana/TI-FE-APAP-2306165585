@@ -1,6 +1,7 @@
 export interface SSOPayload {
   token: string | null;
   username: string | null;
+  role: string | null;
 }
 
 const baseAuthURL = import.meta.env.VITE_AUTH_URL;

@@ -24,7 +24,7 @@ const canPay = computed(() => {
 const handlePayment = async ({ couponCode }: { couponCode: string }) => {
   if (!billDetail.value) return;
 
-  await billStore.payBill(billDetail.value.billID, couponCode);
+  await billStore.payBill(billDetail.value.billID, couponCode || null);
 
   await billStore.fetchBillDetail(billDetail.value.billID);
   showPayConfirm.value = false;
@@ -109,18 +109,16 @@ const askConfirmPay = async () => {
           <p class="text-base">Dibayar pada: {{ formatDateTime(billDetail.paymentTimestamp) }}</p>
         </div>
       </div>
+      <VConfirmModal
+        :show="showPayConfirm"
+        title="Confirm Payment"
+        message="Are you sure you want to pay?"
+        :amount="billDetail.amount"
+        :enableCoupon="true"
+        @confirm="handlePayment"
+        @cancel="showPayConfirm = false"
+      />
     </div>
-    <VConfirmModal
-      v-show="true"
-      :show="showPayConfirm"
-      title="Confirm Payment"
-      message="Are you sure you want to pay this bill now?"
-      confirm-label="Pay"
-      cancel-label="Cancel"
-      :danger="false"
-      @confirm="handlePayment"
-      @cancel="showPayConfirm = false"
-    />
   </div>
 
 </template>

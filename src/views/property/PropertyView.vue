@@ -6,6 +6,7 @@ import { useRouter } from 'vue-router';
 import axios from 'axios';
 import VButton from '@/components/common/VButton.vue';
 import VChip from '@/components/common/VChip.vue';
+import { isAccommodationOwner, isAdmin } from '@/utils/rbac';
 
 const propertiesStore = usePropertiesStore();
 const { properties, loading, error } = storeToRefs(propertiesStore);
@@ -66,7 +67,7 @@ const propertyTypes = [
   <div class="p-6 mt-16">
     <div class="flex justify-between items-center mb-6">
       <h1 class="text-2xl font-semibold">All Properties</h1>
-      <VButton variant="primary" @click="goToAdd">Add Property</VButton>
+      <VButton v-if="isAdmin() || isAccommodationOwner()" variant="primary" @click="goToAdd">Add Property</VButton>
     </div>
 
     <!-- Filters -->
