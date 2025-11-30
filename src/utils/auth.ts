@@ -71,7 +71,6 @@ export function getAuthToken(): string | null {
  * @returns The current user object or null if not found.
  */
 export function getCurrentUserRole(): string | null {
-  console.log('Current user role:', getLocalStorage<string>('role'));
   return getLocalStorage<string>('role');
 }
 

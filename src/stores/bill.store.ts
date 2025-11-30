@@ -2,6 +2,8 @@ import { defineStore } from 'pinia';
 import type { Bill, BillFilters } from '@/interfaces/response/bill.interface';
 import { toast } from 'vue-sonner';
 import api from '@/utils/api';
+import { getCurrentUserRole } from '@/utils/auth';
+import { UserRole } from '@/utils/rbac';
 
 const BASE_URL = import.meta.env.VITE_API_URL + '/bill';
 
@@ -20,18 +22,39 @@ export const useBillStore = defineStore('bill', {
      * @param {boolean} customerOnly whether to fetch only customer bills or all bills
      * @returns {Promise<void>} 
      */
-    async fetchBills(filters?: Record<string, any>, customerOnly = false) {
+    async fetchBills(filters?: Record<string, any>, role = 0) {
       this.loading = true;
       let url = BASE_URL;
-      if (customerOnly) url += '/customer';
+      if (role === 1) url += '/customer';
+      if (role === 2) {
+        const role = getCurrentUserRole();
+        if (role == UserRole.ACCOMMODATION_OWNER) {
+          url += '/Accommodation';
+        } else if (role == UserRole.FLIGHT_AIRLINE) {
+          url += '/Flight';
+        } else if (role == UserRole.TOUR_PACKAGE) {
+          url += '/TourPackage';
+        } else if (role == UserRole.RENTAL_VENDOR) {
+          url += '/VehicleRental';
+        } else if (role == UserRole.INSURANCE_PROVIDER) {
+          url += '/Insurance';
+        }
+      }
       try {
         const response = await api.get(url, { params: filters });
         this.bills = response.data.data || [];
         toast.success('Bills fetched successfully');
-      } catch (err) {
-        toast.error('Failed to fetch Bills');
-        console.error('Failed to fetch bills', err);
-        this.bills = [];
+      } catch (err: any) {
+        // check if it's 404
+        if (err.response?.status === 404) {
+          toast.error('No bills yet');
+          this.bills = [];
+          return;
+        } else {
+          this.bills = [];
+          toast.error('Failed to fetch bills');
+          console.error('Failed to fetch bills', err);
+        }
       } finally {
         this.loading = false;
       }

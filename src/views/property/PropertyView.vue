@@ -33,6 +33,8 @@ const fetchProvinces = async () => {
 };
 
 const goToDetail = (propertyId: string) => router.push(`/property/${propertyId}`);
+const goToReview = (propertyId: string) => router.push(`/property/review/${propertyId}`);
+
 const goToAdd = () => router.push('/property/create');
 
 const fetchFiltered = () => {
@@ -145,9 +147,12 @@ const propertyTypes = [
               <VChip :activeStatus="prop.activeStatus" />
             </td>
 
-            <td class="px-6 py-4 text-sm text-center">
+            <td class="px-6 py-4 text-sm text-center space-x-1">
               <VButton variant="info" size="sm" @click="goToDetail(prop.propertyID)">
                 Detail
+              </VButton>
+              <VButton variant="warning" size="sm" @click="goToReview(prop.propertyID)">
+                Reviews
               </VButton>
             </td>
           </tr>

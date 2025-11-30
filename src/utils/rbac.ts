@@ -45,9 +45,7 @@ export function isAccommodationOwner(): boolean {
  */
 export function isCustomer(): boolean {
   const role = getCurrentUserRole();
-  console.log(role);
   if (!role || typeof role !== 'string') return false;
-  console.log(String(role).toUpperCase() === UserRole.CUSTOMER);
   return String(role).toUpperCase() === UserRole.CUSTOMER;
 }
 
@@ -56,11 +54,15 @@ export function isCustomer(): boolean {
  * @returns True if the user is a part of any service provider, false otherwise.
  */
 export function isPartOfService(): boolean {
+  console.log('Current user role:', getCurrentUserRole());
   const role = getCurrentUserRole();
   if (!role || typeof role !== 'string') return false;
-  return String(role).toUpperCase() === UserRole.FLIGHT_AIRLINE ||
+  var isPartOfService = String(role).toUpperCase() === UserRole.FLIGHT_AIRLINE ||
     String(role).toUpperCase() === UserRole.TOUR_PACKAGE ||
     String(role).toUpperCase() === UserRole.RENTAL_VENDOR ||
-    String(role).toUpperCase() === UserRole.INSURANCE_PROVIDER
+    String(role).toUpperCase() === UserRole.INSURANCE_PROVIDER || 
+    String(role).toUpperCase() === UserRole.ACCOMMODATION_OWNER
+  console.log(isPartOfService);
+  return isPartOfService;
 }
 

@@ -35,7 +35,7 @@ const renderChart = async () => {
   }
 
   const labels = statisticsStore.incomeStatistics.map((i) => i.propertyName);
-  const values = statisticsStore.incomeStatistics.map((i) => i.income);
+  const values = statisticsStore.incomeStatistics.map((i) => i.propertyIncomes);
 
   chartInstance = new Chart(canvas, {
     type: 'bar',

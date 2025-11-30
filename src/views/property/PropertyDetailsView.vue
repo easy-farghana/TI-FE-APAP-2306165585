@@ -12,7 +12,8 @@ import axios from 'axios';
 import { toast } from 'vue-sonner';
 import VConfirmModal from '@/components/common/VConfirmModal.vue';
 import { ro } from 'date-fns/locale';
-import { isAccommodationOwner, isAdmin } from '@/utils/rbac';
+import { isAccommodationOwner, isAdmin, isCustomer } from '@/utils/rbac';
+import api from '@/utils/api';
 
 
 interface Province {
@@ -48,7 +49,7 @@ const submitMaintenance = async () => {
   };
   console.log(payload)
   try {
-    await axios.post(`${baseUrl}/property/maintenance/add`, payload);
+    await api.post(`${baseUrl}/property/maintenance/add`, payload);
     toast.success('Maintenance added successfully');
     showMaintenanceModal.value = false;
   } catch (error: any) {
@@ -126,9 +127,17 @@ const applyFilter = async () => {
   const propertyId = route.params.id as string;
   const checkInDateTime = checkInDate.value ? `${checkInDate.value}T14:00:00` : '';
   const checkOutDateTime = checkOutDate.value ? `${checkOutDate.value}T12:00:00` : '';
-  await propertyStore.fetchPropertyById(propertyId, checkInDateTime, checkOutDateTime);
-  toast.success('Filter applied successfully');
+
+  try {
+    const updatedProperty = await propertyStore.fetchPropertyById(propertyId, checkInDateTime, checkOutDateTime);
+    property.value = updatedProperty as PropertyResponseDTO; 
+    toast.success('Filter applied successfully');
+  } catch (error) {
+    console.error(error);
+    toast.error('Failed to apply filter');
+  }
 };
+
 
 const confirmDelete = async () => {
   if (!propertyToDelete.value) return;
@@ -150,7 +159,7 @@ const handleDelete = (propertyId: string) => {
 </script>
 
 <template>
-  <div class="p-6 max-w-6xl mx-auto mt-8">
+  <div class="p-6 max-w-6xl mx-auto mt-12">
     <div v-if="loading" class="text-center text-gray-600">Loading property details...</div>
     <div v-else-if="error" class="text-red-600">{{ error }}</div>
     
@@ -163,7 +172,7 @@ const handleDelete = (propertyId: string) => {
           </h1>
           <VChip :activeStatus="property.activeStatus" />
         </div>
-        <div class="space-x-3">
+        <div class="space-x-3 space-y-2">
           <VButton 
             v-if="isAdmin() || isAccommodationOwner()"
             variant="primary" 
@@ -296,6 +305,7 @@ const handleDelete = (propertyId: string) => {
                 <td class="px-4 py-3 text-center">
                   <div class="space-x-2">
                   <VButton 
+                    v-if="isCustomer()"
                     variant="info" 
                     size="sm"
                     :disabled="room.availabilityStatus === 0"
@@ -313,7 +323,8 @@ const handleDelete = (propertyId: string) => {
                     Book
                   </VButton>
 
-                  <VButton 
+                  <VButton
+                    v-if="isAdmin() || isAccommodationOwner()" 
                     variant="warning" 
                     size="sm"
                     :disabled="property.activeStatus === 0 || room.availabilityStatus === 0"

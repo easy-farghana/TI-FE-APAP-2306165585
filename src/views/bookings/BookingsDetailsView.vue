@@ -11,6 +11,7 @@ import VConfirmModal from '@/components/common/VConfirmModal.vue';
 
 import type { AccommodationBookingResponseDTO } from '@/interfaces/response/booking.interface.ts';
 import { useBookingStore } from '@/stores/booking.store';
+import { isCustomer } from '@/utils/rbac';
 
 const route = useRoute();
 const router = useRouter();
@@ -38,7 +39,7 @@ const handleUpdate = (id: string) => {
 
 const handleReview = (id: string) => {
   router.push({
-    path: `/review/create`,
+    path: `/review/create/${id}`,
     state: { booking: booking.value }
   })
 }
@@ -107,7 +108,7 @@ onMounted(async () => {
         <!-- Conditional Action Buttons -->
         <div class="flex flex-wrap gap-3 justify-end">
           <!-- Waiting for Payment -->
-          <template v-if="booking.status === 0">
+          <template v-if="booking.status === 0 && isCustomer()">
             <VButton
               variant="warning"
               @click="handleUpdate(booking.bookingID)"
@@ -118,9 +119,8 @@ onMounted(async () => {
           </template>
 
           <!-- Payment Confirmed -->
-          <template v-else-if="booking.status === 1">
+          <template v-else-if="booking.status === 1 && isCustomer()">
             <VButton variant="warning" @click="handleReview(booking.bookingID)">Review</VButton>
-            <VButton variant="danger" @click="handleCancel(booking.bookingID)">Cancel</VButton>
           </template>
 
         </div>

@@ -8,6 +8,7 @@ import type {
 import type { CommonResponseInterface } from '@/interfaces/common.response.interface';
 import type { PropertyTransactionRequest } from '@/interfaces/request/add.property.interface';
 import router from '@/router';
+import { isCustomer } from '@/utils/rbac';
 
 const baseUrl = import.meta.env.VITE_API_URL + '/property';
 
@@ -29,11 +30,12 @@ export const usePropertiesStore = defineStore('properties', {
 
       try {
         const params = new URLSearchParams();
+        var propertyUrl = baseUrl;
         if (filters.name) params.append('name', filters.name);
         if (filters.type) params.append('type', String(filters.type));
         if (filters.province) params.append('province', String(filters.province));
-
-        const res = await api.get<CommonResponseInterface<AllProperty[]>>(baseUrl, {
+        if (isCustomer()) propertyUrl += '-active'; 
+        const res = await api.get<CommonResponseInterface<AllProperty[]>>(propertyUrl, {
           params,
         });
 
@@ -137,6 +139,8 @@ export const usePropertiesStore = defineStore('properties', {
     async updateProperty(payload: {
       property: {
         propertyId: string;
+        type: number;
+        province: number;
         propertyName: string;
         address: string;
         description: string;

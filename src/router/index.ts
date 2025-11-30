@@ -11,9 +11,12 @@ import CreateBookingsView from '@/views/bookings/BookingsFormView.vue'
 import BookFromPropertyView from '@/views/bookings/BookFromPropertyView.vue'
 import IncomeStatisticsView from '@/views/statistics/IncomeStatisticsView.vue'
 import { toast } from 'vue-sonner'
-import { isAccommodationOwner, isAdmin, isAuthenticated, isCustomer } from '@/utils/rbac'
+import { isAccommodationOwner, isAdmin, isAuthenticated, isCustomer, isPartOfService } from '@/utils/rbac'
 import BillView from '@/views/bills/BillView.vue'
 import BillDetailsView from '@/views/bills/BillDetailsView.vue'
+import CreateReviewView from '@/views/reviews/CreateReviewView.vue'
+import PropertyReviewsView from '@/views/reviews/PropertyReviewsView.vue'
+import MyReviewsView from '@/views/reviews/MyReviewsView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -98,16 +101,32 @@ const router = createRouter({
       name: 'bills-details',
       component: BillDetailsView,
     },
-    
+    {
+      path: '/review/create/:bookingID',
+      name: 'create-review',
+      component: CreateReviewView,
+    },
+    {
+      path: '/property/review/:propertyID',
+      name: 'property-reviews',
+      component: PropertyReviewsView,
+    },
+    {
+      path: '/review/my-reviews',
+      name: 'my-reviews',
+      component: MyReviewsView,
+    },     
   ],
 })
+
 const routeRoles: Record<string, () => boolean> = {
   '/bills/customer': isCustomer,
-  '/bills/service': isAdmin,
+  '/bills/service': isPartOfService,
   '/bills': isAdmin,
   '/bill': () => isAdmin() || isCustomer(), 
   '/statistics': isAdmin,
   '/booking': () => isAdmin() || isCustomer() || isAccommodationOwner(),
+  '/review/create': isCustomer,
 };
 
 // Navigation guard for RBAC

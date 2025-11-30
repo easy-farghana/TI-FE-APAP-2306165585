@@ -111,6 +111,8 @@ const getLinkClass = (path: string) =>
       <RouterLink v-if="isAdmin() || isAccommodationOwner()" to="/bookings/chart" :class="getLinkClass('/bookings/chart')">Statistic</RouterLink>
       <RouterLink v-if="isPartOfService()" to="/bills/service" :class="getLinkClass('/bills')">Service Bills</RouterLink>
       <RouterLink v-if="isCustomer()"to="/bills/customer" :class="getLinkClass('/bills')">My Bills</RouterLink>
+      <RouterLink v-if="isAdmin()"to="/bills" :class="getLinkClass('/bills')">Bills</RouterLink>
+
 
       <button 
         v-if="!currentUser"

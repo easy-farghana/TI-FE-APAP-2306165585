@@ -10,17 +10,20 @@ import VButton from '@/components/common/VButton.vue';
 import PropertyDetailsForm from '@/components/property/PropertyDetailsForm.vue';
 import RoomTypeFormList from '@/components/property/RoomTypeFormList.vue';
 import { useUserStore } from '@/stores/user.store';
+import { isAdmin } from '@/utils/rbac';
 
 const router = useRouter();
 const propertiesStore = usePropertiesStore();
 const userStore = useUserStore();
 const loading = ref(false);
 const provinces = ref<{ id: number; name: string }[]>([]);
-// const isSuperAdmin = computed(() => authStore.currentUser?.role === 'SUPERADMIN');
+
 
 onMounted(async () => {
   fetchProvinces();
-  await userStore.fetchOwners();  // load dropdown owners
+  if (isAdmin()) {
+    await userStore.fetchOwners();  // load dropdown owners
+  }
   console.log(userStore.owners)
   if (true) {
   } else {

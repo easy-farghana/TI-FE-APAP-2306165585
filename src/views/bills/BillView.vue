@@ -6,13 +6,14 @@ import { useBillStore } from '@/stores/bill.store';
 import VButton from '@/components/common/VButton.vue';
 import VBillsChip from '@/components/common/VBillsChip.vue';
 import type { Bill } from '@/interfaces/response/bill.interface';
+import { isAdmin } from '@/utils/rbac';
 
 const billStore = useBillStore();
 const { bills, loading } = storeToRefs(billStore);
 const router = useRouter();
 const route = useRoute();
 
-// Detect if it's customer view
+// Detect if it's customer view or service view
 const isCustomerView = route.path.includes('/customer');
 const isServicesView = route.path.includes('/service');
 
@@ -31,21 +32,30 @@ watch([searchStatus, sortBy, sortDir], fetchBillFiltered);
 if (!isCustomerView) {
   watch([searchCustomerID, searchServiceName], fetchBillFiltered);
 }
-
+// Note: 0-> Admin, 1-> Customer, 2-> services
 function fetchBillFiltered() {
+  if (isAdmin()) {
+    billStore.fetchBills({
+      status: searchStatus.value !== '' ? searchStatus.value : undefined,
+      customerID: searchCustomerID.value || undefined,
+      serviceName: searchServiceName.value || undefined,
+    }, 0);
+  }
+
   if (isCustomerView) {
     billStore.fetchBills({
       status: searchStatus.value !== '' ? searchStatus.value : undefined,
       sortBy: sortBy.value,
       sortDir: sortDir.value,
-    }, true);
-  } else {
+    }, 1);
+  } 
+  if (isServicesView) {
     billStore.fetchBills({
       customerID: searchCustomerID.value || undefined,
-      serviceName: searchServiceName.value || undefined,
       status: searchStatus.value !== '' ? searchStatus.value : undefined,
-    }, false);
+    }, 2);
   }
+
 }
 
 // Initial fetch
@@ -97,7 +107,7 @@ const goToDetail = (billId: string) => router.push(`/bill/${billId}`);
           <label class="mb-2 text-sm font-medium text-gray-700">Customer ID</label>
           <input type="text" v-model="searchCustomerID" placeholder="Search by Customer ID..." class="px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"/>
         </div>
-        <div class="flex flex-col">
+        <div v-if="!isServicesView" class="flex flex-col">
           <label class="mb-2 text-sm font-medium text-gray-700">Service Name</label>
           <input type="text" v-model="searchServiceName" placeholder="Search by Service Name..." class="px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"/>
         </div>
@@ -129,7 +139,7 @@ const goToDetail = (billId: string) => router.push(`/bill/${billId}`);
             <td class="px-6 py-4 text-sm text-gray-900">{{ bill.serviceName }}</td>
             <td class="px-6 py-4 text-sm text-gray-900">{{ bill.serviceReferenceID }}</td>
             <td class="px-6 py-4 text-sm text-gray-900">{{ bill.customerID }}</td>
-            <td class="px-6 py-4 text-sm text-right">{{ bill.amount }}</td>
+            <td class="px-6 py-4 text-sm text-right">Rp{{ bill.amount.toLocaleString() }}</td>
             <td class="px-6 py-4 text-sm text-center">
               <VBillsChip :activeStatus="bill.status" />
             </td>
