@@ -30,6 +30,8 @@ jobs:
       - name: Build Vue app
         env:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
+          VITE_AUTH_BE_URL : ${{ secrets.VITE_AUTH_BE_URL }}
+          VITE_AUTH_URL : ${{ secrets.VITE_AUTH_URL }}
         run: npm run build
 
       - name: Upload dist as artifact
