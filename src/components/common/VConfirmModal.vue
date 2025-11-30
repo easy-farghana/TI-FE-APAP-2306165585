@@ -115,8 +115,8 @@ function confirm() {
             <VButton
               v-if="enableCoupon && !useCoupon"
               type="button"
-              variant="secondary"
-              class="mr-2"
+              variant="info"
+              class="mr-2 ml-2"
               @click="useCoupon = true"
             >
               Pay With Coupon

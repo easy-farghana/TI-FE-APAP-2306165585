@@ -43,6 +43,7 @@ const submitReview = async () => {
     submitting.value = true;
     await reviewStore.createReview(payload);
     toast.success('Review submitted successfully');
+    router.push("/review/my-reviews");
   } catch (err) {
     console.error(err);
     toast.error('Failed to submit review: ' + err);

@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { useReviewStore } from '@/stores/review.store';
 import { format } from 'date-fns';
+import VButton from '@/components/common/VButton.vue';
 
 const route = useRoute();
 const reviewStore = useReviewStore();
@@ -47,6 +48,14 @@ const formatDate = (date: string) => format(new Date(date), 'dd MMM yyyy, HH:mm'
         <p class="mt-1">{{ review.comment }}</p>
         <p class="mt-1 font-medium">Overall Rating: {{ review.overallRating }}/5</p>
         <p class="text-gray-500 text-sm mt-1">Created At: {{ formatDate(review.createdAt) }}</p>
+        <VButton
+          class="my-4 mx-2"
+          variant="primary"
+          size="sm"
+          @click="$router.push(`/review/${review.reviewID}`)"
+        >
+          Details
+        </VButton>
       </div>
     </div>
   </div>

@@ -15,7 +15,7 @@ const formatDate = (date: string) => format(new Date(date), 'dd MMM yyyy, HH:mm'
 </script>
 
 <template>
-  <div class="max-w-4xl mx-auto p-6">
+  <div class="max-w-4xl mx-auto p-6 mt-16">
     <h1 class="text-2xl font-bold mb-6">My Reviews</h1>
 
     <div v-if="loading" class="text-gray-500">Loading your reviews...</div>
@@ -28,18 +28,14 @@ const formatDate = (date: string) => format(new Date(date), 'dd MMM yyyy, HH:mm'
         <p class="mt-1">Customer: {{ review.customerName }}</p>
         <p class="mt-1">{{ review.comment }}</p>
         <p class="mt-1 font-medium">Overall Rating: {{ review.overallRating }}/5</p>
-        <!-- <VButton 
-          variant="secondary"
+        <VButton
+          class="m-4"
+          variant="primary"
           size="sm"
-          @click="alert(`
-            Cleanliness: ${review.cleanlinessRating}
-            Facility: ${review.facilityRating}
-            Service: ${review.serviceRating}
-            Value: ${review.valueRating}
-          `)"
+          @click="$router.push(`/review/${review.reviewID}`)"
         >
           Details
-        </VButton> -->
+        </VButton>
       </div>
     </div>
   </div>

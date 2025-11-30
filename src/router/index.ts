@@ -17,6 +17,7 @@ import BillDetailsView from '@/views/bills/BillDetailsView.vue'
 import CreateReviewView from '@/views/reviews/CreateReviewView.vue'
 import PropertyReviewsView from '@/views/reviews/PropertyReviewsView.vue'
 import MyReviewsView from '@/views/reviews/MyReviewsView.vue'
+import ReviewsDetailView from '@/views/reviews/ReviewsDetailView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -115,7 +116,12 @@ const router = createRouter({
       path: '/review/my-reviews',
       name: 'my-reviews',
       component: MyReviewsView,
-    },     
+    },
+    {
+      path: '/review/:reviewId',
+      name: 'review-details',
+      component: ReviewsDetailView,
+    },      
   ],
 })
 

@@ -76,6 +76,7 @@ const handleLogout = () => {
 
   currentToken.value = null;
   currentUser.value = null;
+  currentRole.value = null;
 
   removeLocalStorage('token');
   removeLocalStorage('username');
@@ -106,11 +107,12 @@ const getLinkClass = (path: string) =>
 
     <!-- Right side: Navigation -->
     <nav class="flex gap-6">
-      <RouterLink to="/property" :class="getLinkClass('/property')">Property</RouterLink>
-      <RouterLink to="/bookings" :class="getLinkClass('/bookings')">Bookings</RouterLink>
+      <RouterLink v-if="isAdmin() || isAccommodationOwner() || isCustomer()" to="/property" :class="getLinkClass('/property')">Property</RouterLink>
+      <RouterLink v-if="isAdmin() || isAccommodationOwner() || isCustomer()" to="/bookings" :class="getLinkClass('/bookings')">Bookings</RouterLink>
       <RouterLink v-if="isAdmin() || isAccommodationOwner()" to="/bookings/chart" :class="getLinkClass('/bookings/chart')">Statistic</RouterLink>
       <RouterLink v-if="isPartOfService()" to="/bills/service" :class="getLinkClass('/bills')">Service Bills</RouterLink>
       <RouterLink v-if="isCustomer()"to="/bills/customer" :class="getLinkClass('/bills')">My Bills</RouterLink>
+      <RouterLink v-if="isCustomer()"to="/review/my-reviews" :class="getLinkClass('/bills')">My Reviews</RouterLink>
       <RouterLink v-if="isAdmin()"to="/bills" :class="getLinkClass('/bills')">Bills</RouterLink>
 
 
