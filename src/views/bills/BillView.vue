@@ -5,8 +5,17 @@ import { storeToRefs } from 'pinia';
 import { useBillStore } from '@/stores/bill.store';
 import VButton from '@/components/common/VButton.vue';
 import VBillsChip from '@/components/common/VBillsChip.vue';
-import type { Bill } from '@/interfaces/response/bill.interface';
-import { isAdmin } from '@/utils/rbac';
+import { isAdmin, isPartOfService } from '@/utils/rbac';
+import { useUserStore } from '@/stores/user.store';
+import { is } from 'date-fns/locale';
+
+const userStore = useUserStore();
+
+onMounted(async () => {
+  if (isAdmin() || isPartOfService()) {
+    await userStore.fetchCustomers();
+  }
+});
 
 const billStore = useBillStore();
 const { bills, loading } = storeToRefs(billStore);
@@ -76,12 +85,11 @@ const goToDetail = (billId: string) => router.push(`/bill/${billId}`);
       <template v-if="isCustomerView">
         <div class="flex flex-col">
           <label class="mb-2 text-sm font-medium text-gray-700">Status</label>
-          <input
-            type="number"
-            v-model.number="searchStatus"
-            placeholder="Filter by Status..."
-            class="px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"
-          />
+          <select v-model.number="searchStatus" class="px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+            <option value="">Select Status</option>
+            <option :value="0">Unpaid</option>
+            <option :value="1">Paid</option>
+          </select>
         </div>
 
         <div class="flex flex-col">
@@ -104,16 +112,36 @@ const goToDetail = (billId: string) => router.push(`/bill/${billId}`);
       <!-- Normal view -->
       <template v-else>
         <div class="flex flex-col">
-          <label class="mb-2 text-sm font-medium text-gray-700">Customer ID</label>
-          <input type="text" v-model="searchCustomerID" placeholder="Search by Customer ID..." class="px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"/>
+          <label class="mb-2 text-sm font-medium text-gray-700">Customer</label>
+          <select v-model="searchCustomerID" class="px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+            <option value="">Select a Customer</option>
+            <option 
+              v-for="customer in userStore.customers" 
+              :key="customer.id" 
+              :value="customer.id"
+            >
+              {{ customer.name }}
+            </option>
+          </select>
         </div>
         <div v-if="!isServicesView" class="flex flex-col">
           <label class="mb-2 text-sm font-medium text-gray-700">Service Name</label>
-          <input type="text" v-model="searchServiceName" placeholder="Search by Service Name..." class="px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"/>
+          <select v-model="searchServiceName" class="px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+            <option value="">Select a Service</option>
+            <option value="Flight">Flight</option>
+            <option value="Accommodation">Accommodation</option>
+            <option value="VehicleRental">Vehicle Rental</option>
+            <option value="Insurance">Insurance</option>
+            <option value="TourPackage">Tour Package</option>
+          </select>
         </div>
         <div class="flex flex-col">
           <label class="mb-2 text-sm font-medium text-gray-700">Status</label>
-          <input type="number" v-model.number="searchStatus" placeholder="Filter by Status..." class="px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500"/>
+          <select v-model.number="searchStatus" class="px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+            <option value="">Select Status</option>
+            <option :value="0">Unpaid</option>
+            <option :value="1">Paid</option>
+          </select>
         </div>
       </template>
     </div>
