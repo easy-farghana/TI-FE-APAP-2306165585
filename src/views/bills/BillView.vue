@@ -14,6 +14,8 @@ const route = useRoute();
 
 // Detect if it's customer view
 const isCustomerView = route.path.includes('/customer');
+const isServicesView = route.path.includes('/service');
+
 
 // Filters
 const searchStatus = ref<number | ''>('');

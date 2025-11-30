@@ -89,6 +89,11 @@ const router = createRouter({
       component: BillView,
     },
     {
+      path: '/bills/service',
+      name: 'bills-service',
+      component: BillView,
+    },
+    {
       path: '/bill/:billId',
       name: 'bills-details',
       component: BillDetailsView,

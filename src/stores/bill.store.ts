@@ -57,7 +57,12 @@ export const useBillStore = defineStore('bill', {
     async payBill(billId: string, couponCode?: string | null) {
       this.loading = true;
       try {
-        await api.post(`${BASE_URL}/${billId}/pay`);
+        if (couponCode){
+          await api.post(`${BASE_URL}/${billId}/pay`, { couponCode });
+        } 
+        else {
+          await api.post(`${BASE_URL}/${billId}/pay`);
+        }
         toast.success('Bill paid successfully');
       } catch (err) {
         toast.error('Failed to pay bill');

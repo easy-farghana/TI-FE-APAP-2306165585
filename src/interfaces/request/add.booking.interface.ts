@@ -3,7 +3,6 @@ export interface AddBookingRequest {
   checkInDate: string;     
   checkOutDate: string;    
   capacity: number;
-  customerID: string;
   customerName: string;
   customerEmail: string;
   customerPhone: string;
