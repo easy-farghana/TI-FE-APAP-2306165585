@@ -11,6 +11,7 @@ import VConfirmModal from '@/components/common/VConfirmModal.vue';
 
 import type { AccommodationBookingResponseDTO } from '@/interfaces/response/booking.interface.ts';
 import { useBookingStore } from '@/stores/booking.store';
+import { isCustomer } from '@/utils/rbac';
 
 const route = useRoute();
 const router = useRouter();
@@ -21,41 +22,11 @@ const booking = ref<AccommodationBookingResponseDTO | null>(null);
 const showCancelModal = ref(false);
 const bookingToCancel = ref<string | null>(null);
 
-const showPayModal = ref(false);
-const bookingToPay = ref<string | null>(null);
-
-
 const formatDateTime = (dateString: string | null | undefined) => {
   if (!dateString) return '-';
   const parsed = new Date(dateString);
   if (isNaN(parsed.getTime())) return '-';
   return format(parsed, 'dd MMM yyyy, HH:mm:ss');
-};
-
-
-onMounted(async () => {
-  try {
-    const bookingID = route.params.bookingID as string;
-    booking.value = await bookingStore.fetchBookingById(bookingID);
-  } catch (err) {
-    console.error('Error fetching booking:', err);
-  }
-});
-
-const handlePay = (id: string) => {
-  bookingToPay.value = id;
-  showPayModal.value = true;
-};
-
-const confirmPay = async () => {
-    if (!bookingToPay.value) return;
-
-    await bookingStore.payBooking(bookingToPay.value);
-    booking.value = await bookingStore.fetchBookingById(bookingToPay.value);
-
-    showPayModal.value = false;
-    bookingToPay.value = null;
-  
 };
 
 
@@ -66,13 +37,12 @@ const handleUpdate = (id: string) => {
   });
 };
 
-
-const handleRefund = async (id: string) => {
-  
-    await bookingStore.refundBooking(id);
-    booking.value = await bookingStore.fetchBookingById(id); // refresh
-
-};
+const handleReview = (id: string) => {
+  router.push({
+    path: `/review/create/${id}`,
+    state: { booking: booking.value }
+  })
+}
 
 const confirmCancel = async () => {
     if (!bookingToCancel.value) return;
@@ -108,7 +78,14 @@ const getStatusLabel = (status: number) => {
     default: return 'Unknown';
   }
 };
-
+onMounted(async () => {
+  try {
+    const bookingID = route.params.bookingID as string;
+    booking.value = await bookingStore.fetchBookingById(bookingID);
+  } catch (err) {
+    console.error('Error fetching booking:', err);
+  }
+});
 </script>
 
 <template>
@@ -131,10 +108,8 @@ const getStatusLabel = (status: number) => {
         <!-- Conditional Action Buttons -->
         <div class="flex flex-wrap gap-3 justify-end">
           <!-- Waiting for Payment -->
-          <template v-if="booking.status === 0">
-            <VButton variant="primary" @click="handlePay(booking.bookingID)">Pay</VButton>
+          <template v-if="booking.status === 0 && isCustomer()">
             <VButton
-              v-if="booking.extraPay === 0"
               variant="warning"
               @click="handleUpdate(booking.bookingID)"
             >
@@ -144,16 +119,10 @@ const getStatusLabel = (status: number) => {
           </template>
 
           <!-- Payment Confirmed -->
-          <template v-else-if="booking.status === 1">
-            <VButton variant="warning" @click="handleUpdate(booking.bookingID)">Update</VButton>
-            <VButton variant="danger" @click="handleCancel(booking.bookingID)">Cancel</VButton>
+          <template v-else-if="booking.status === 1 && isCustomer()">
+            <VButton variant="warning" @click="handleReview(booking.bookingID)">Review</VButton>
           </template>
 
-          <!-- Cancelled -->
-          <template v-else-if="booking.status === 3">
-            <VButton variant="info" @click="handleRefund(booking.bookingID)">Refund</VButton>
-            <VButton variant="danger" @click="handleCancel(booking.bookingID)">Cancel</VButton>
-          </template>
         </div>
       </div>
 
@@ -205,17 +174,6 @@ const getStatusLabel = (status: number) => {
           <p class="text-sm text-gray-500">Capacity</p>
           <p class="text-base">{{ booking.capacity }} persons</p>
         </div>
-
-        <!-- Optional: Show only if > 0 -->
-        <div v-if="booking.extraPay > 0">
-          <p class="text-sm text-gray-500">Extra Pay</p>
-          <p class="text-base">Rp{{ booking.extraPay.toLocaleString() }}</p>
-        </div>
-        <div v-if="booking.refund > 0">
-          <p class="text-sm text-gray-500">Refund</p>
-          <p class="text-base">Rp{{ booking.refund.toLocaleString() }}</p>
-        </div>
-
         <div>
           <p class="text-sm text-gray-500">Created Date</p>
           <p class="text-base">{{ formatDateTime(booking.createdDate) }}</p>
@@ -228,7 +186,6 @@ const getStatusLabel = (status: number) => {
 
       <VButton variant="secondary" @click="router.push('/bookings')">Back</VButton>
     </div>
-
     <VConfirmModal
         :show="showCancelModal"
         title="Cancel Booking"
@@ -239,15 +196,5 @@ const getStatusLabel = (status: number) => {
         @confirm="confirmCancel"
         @cancel="showCancelModal = false"
     />
-    <VConfirmModal
-        :show="showPayModal"
-        title="Confirm Payment"
-        message="Are you sure you want to pay for this booking?"
-        confirm-label="Yes, Pay"
-        cancel-label="No"
-        @confirm="confirmPay"
-        @cancel="showPayModal = false"
-    />
-
   </div>
 </template>

@@ -1,10 +1,8 @@
 export interface AddBookingRequest {
-  roomID: string;          
-  roomTypeID: string;     
+  roomID: string;           
   checkInDate: string;     
   checkOutDate: string;    
   capacity: number;
-  customerID: string;
   customerName: string;
   customerEmail: string;
   customerPhone: string;

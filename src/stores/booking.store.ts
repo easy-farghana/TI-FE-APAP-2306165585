@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import axios from 'axios';
+import api from '@/utils/api';
 import { toast } from 'vue-sonner';
 import type { CommonResponseInterface } from '@/interfaces/common.response.interface';
 import type { AccommodationBookingResponseDTO } from '@/interfaces/response/booking.interface';
@@ -20,7 +20,7 @@ export const useBookingStore = defineStore('booking', {
       this.loading = true;
       this.error = null;
       try {
-        const res = await axios.get<CommonResponseInterface<AccommodationBookingResponseDTO[]>>(baseBookingUrl);
+        const res = await api.get<CommonResponseInterface<AccommodationBookingResponseDTO[]>>(baseBookingUrl);
         this.bookings = res.data.data ?? [];
         if (!this.bookings || this.bookings.length === 0) {
           toast.warning('Tidak ada booking ditemukan');
@@ -40,7 +40,7 @@ export const useBookingStore = defineStore('booking', {
       this.loading = true;
       this.error = null;
       try {
-        const response = await axios.get<CommonResponseInterface<AccommodationBookingResponseDTO>>(
+        const response = await api.get<CommonResponseInterface<AccommodationBookingResponseDTO>>(
           `${baseBookingUrl}/${bookingID}`
         );
         return response.data.data;
@@ -59,7 +59,7 @@ export const useBookingStore = defineStore('booking', {
       this.error = null;
 
       try {
-        const res = await axios.post<CommonResponseInterface<any>>(`${baseBookingUrl}/create`, payload);
+        const res = await api.post<CommonResponseInterface<any>>(`${baseBookingUrl}/create`, payload);
         toast.success('Booking created successfully');
         return res.data.data;
       } catch (err: any) {
@@ -78,7 +78,7 @@ export const useBookingStore = defineStore('booking', {
       this.error = null;
 
       try {
-        const res = await axios.put<CommonResponseInterface<any>>(`${baseBookingUrl}/update/${bookingID}`, payload);
+        const res = await api.put<CommonResponseInterface<any>>(`${baseBookingUrl}/update/${bookingID}`, payload);
         toast.success('Booking updated successfully');
         return res.data.data;
       } catch (err: any) {
@@ -94,7 +94,7 @@ export const useBookingStore = defineStore('booking', {
     // Pay booking
     async payBooking(bookingId: string) {
       try {
-        const response = await axios.post<CommonResponseInterface<void>>(
+        const response = await api.post<CommonResponseInterface<void>>(
           `${baseBookingUrl}/pay/${bookingId}`
         );
         toast.success('Payment Succesful');
@@ -108,7 +108,7 @@ export const useBookingStore = defineStore('booking', {
     // Cancel booking
     async cancelBooking(bookingId: string) {
       try {
-        const response = await axios.post<CommonResponseInterface<void>>(
+        const response = await api.post<CommonResponseInterface<void>>(
           `${baseBookingUrl}/cancel/${bookingId}`
         );
         toast.success('Booking cancelled');
@@ -122,7 +122,7 @@ export const useBookingStore = defineStore('booking', {
     // Refund booking
     async refundBooking(bookingId: string) {
       try {
-        const response = await axios.post<CommonResponseInterface<void>>(
+        const response = await api.post<CommonResponseInterface<void>>(
           `${baseBookingUrl}/refund/${bookingId}`
         );
         toast.success('Refund successful');

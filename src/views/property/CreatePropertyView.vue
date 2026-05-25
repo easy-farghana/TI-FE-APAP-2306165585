@@ -9,11 +9,29 @@ import VButton from '@/components/common/VButton.vue';
 
 import PropertyDetailsForm from '@/components/property/PropertyDetailsForm.vue';
 import RoomTypeFormList from '@/components/property/RoomTypeFormList.vue';
+import { useUserStore } from '@/stores/user.store';
+import { isAdmin } from '@/utils/rbac';
 
 const router = useRouter();
 const propertiesStore = usePropertiesStore();
+const userStore = useUserStore();
 const loading = ref(false);
 const provinces = ref<{ id: number; name: string }[]>([]);
+
+
+onMounted(async () => {
+  fetchProvinces();
+  if (isAdmin()) {
+    await userStore.fetchOwners();  // load dropdown owners
+  }
+  console.log(userStore.owners)
+  if (true) {
+  } else {
+    // Auto-fill for non-superadmin
+    // propertyForm.value.ownerId = authStore.currentUser.id;
+    // propertyForm.value.ownerName = authStore.currentUser.fullName;
+  }
+});
 
 const propertyForm = ref({
   propertyName: '',
@@ -59,6 +77,22 @@ const addRoomType = () => roomTypes.value.push({ name: '', facility: '', capacit
 const removeRoomType = (i: number) => roomTypes.value.length > 1 ? roomTypes.value.splice(i, 1) : toast.error('At least one room type required');
 
 const submitForm = async () => {
+  for (const rt of roomTypes.value) {
+    if (
+      !rt.name ||
+      !rt.facility ||
+      !rt.capacity ||
+      !rt.price ||
+      !rt.floor ||
+      !rt.unit ||
+      !rt.description
+    ) {
+      toast.error("Please complete all room type fields");
+      loading.value = false;
+      return;
+    }
+  }
+
   loading.value = true;
   try {
     const payload = {
@@ -75,14 +109,19 @@ const submitForm = async () => {
   }
 };
 
-onMounted(fetchProvinces);
+
 </script>
 
 <template>
   <div class="p-6 max-w-4xl mx-auto space-y-8">
     <h1 class="text-2xl font-semibold">Add New Property</h1>
 
-    <PropertyDetailsForm v-model="propertyForm" :provinces="provinces" :property-types="propertyTypes" />
+    <PropertyDetailsForm 
+      v-model="propertyForm" 
+      :provinces="provinces" 
+      :property-types="propertyTypes"
+      :owners="userStore.owners"
+     />
 
     <RoomTypeFormList
       :room-types="roomTypes"

@@ -5,6 +5,7 @@ import { useBookingStore } from '@/stores/booking.store';
 import { useRouter } from 'vue-router';
 import VButton from '@/components/common/VButton.vue';
 import VBookingsChip from '@/components/common/VBookingsChip.vue';
+import { isCustomer } from '@/utils/rbac';
 
 
 const bookingStore = useBookingStore();
@@ -90,7 +91,7 @@ const getStatusLabel = (status: number) => {
   <div class="p-6 mt-16">
     <div class="flex justify-between items-center mb-6">
       <h1 class="text-2xl font-semibold">All Bookings</h1>
-      <VButton variant="primary" @click="goToAdd">Add Booking</VButton>
+      <VButton v-if="isCustomer()" variant="primary" @click="goToAdd">Add Booking</VButton>
     </div>
 
     <!-- Filters -->

@@ -17,11 +17,9 @@ const isUpdateMode = !!bookingID;
 
 const form = ref<AddBookingRequest>({
   roomID: '',
-  roomTypeID: '',
   checkInDate: '',
   checkOutDate: '',
   capacity: 1,
-  customerID: '',
   customerName: '',
   customerEmail: '',
   customerPhone: '',
@@ -34,6 +32,7 @@ const roomTypes = ref<any[]>([]);
 const rooms = ref<any[]>([]);
 const checkInDate = ref('');
 const checkOutDate = ref('');
+const disableSelection = ref(false); 
 
 watch(checkInDate, (val) => {
   if (val) form.value.checkInDate = `${val}T14:00:00`;
@@ -43,39 +42,37 @@ watch(checkOutDate, (val) => {
 });
 
 onMounted(async () => {
-  await propertiesStore.fetchProperties();
+  await propertiesStore.fetchPropertiesFiltered({}); 
 
   if (isUpdateMode && bookingID) {
     let bookingData = history.state.booking || await bookingStore.fetchBookingById(bookingID);
     if (!bookingData) return;
-
+    console.log(bookingData);
+    // Populate form
     form.value = {
-      roomID: bookingData.roomID,       
-      roomTypeID: bookingData.roomTypeID || '',
+      roomID: bookingData.roomID,
       checkInDate: bookingData.checkInDate,
       checkOutDate: bookingData.checkOutDate,
       capacity: bookingData.capacity,
-      customerID: bookingData.customerID,
       customerName: bookingData.customerName,
       customerEmail: bookingData.customerEmail,
       customerPhone: bookingData.customerPhone,
-      isBreakfast: bookingData.isBreakfast ?? false,
+      isBreakfast: bookingData.breakfast ?? false,
     };
-    console.log('Form data:', form.value);
-    // Set checkIn/Out date
-    checkInDate.value = bookingData.checkInDate.split('T')[0];
-    checkOutDate.value = bookingData.checkOutDate.split('T')[0];
 
-    selectedPropertyId.value = bookingData.roomID.split('-').slice(0,3).join('-');
-
+    checkInDate.value = bookingData.checkInDate?.split('T')[0] || '';
+    checkOutDate.value = bookingData.checkOutDate?.split('T')[0] || '';
+    selectedPropertyId.value = bookingData.propertyID;
 
     await onPropertyChange();
 
     selectedRoomTypeId.value = bookingData.roomTypeID;
-    onRoomTypeChange();
+    await onRoomTypeChange();
+
+    form.value.roomID = bookingData.roomID;
+    disableSelection.value = true; 
   }
 });
-
 
 async function onPropertyChange() {
   const property = await propertiesStore.fetchPropertyById(selectedPropertyId.value);
@@ -92,15 +89,16 @@ async function onPropertyChange() {
 
   roomTypes.value = Object.values(grouped);
   rooms.value = [];
-  form.value.roomTypeID = '';
-  form.value.roomID = '';
+  if (!disableSelection.value) form.value.roomID = ''; 
 }
 
 function onRoomTypeChange() {
   const roomType = roomTypes.value.find(rt => rt.roomTypeID === selectedRoomTypeId.value);
   rooms.value = roomType?.listRoom ?? [];
-  form.value.roomTypeID = selectedRoomTypeId.value;
-  form.value.roomID = '';
+
+  if (!isUpdateMode) {
+    form.value.roomID = '';
+  }
 }
 
 async function submitBooking() {
@@ -121,6 +119,7 @@ async function submitBooking() {
 }
 </script>
 
+
 <template>
   <div class="max-w-2xl mx-auto p-6 bg-white shadow rounded-2xl mt-16 mb-12">
     <h2 class="text-xl font-semibold mb-4">
@@ -128,59 +127,61 @@ async function submitBooking() {
     </h2>
 
     <form @submit.prevent="submitBooking" class="space-y-4">
-      <!-- Property -->
-      <div>
-        <label class="block text-sm font-medium mb-1">Property</label>
-        <select
-          v-model="selectedPropertyId"
-          @change="onPropertyChange"
-          class="w-full border rounded-md p-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+    <!-- Property -->
+    <div>
+      <label class="block text-sm font-medium mb-1">Property</label>
+      <select
+        v-model="selectedPropertyId"
+        @change="onPropertyChange"
+        class="w-full border rounded-md p-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+        :disabled="disableSelection"
+      >
+        <option value="">Select property</option>
+        <option
+          v-for="p in propertiesStore.properties"
+          :key="p.propertyID"
+          :value="p.propertyID"
         >
-          <option value="">Select property</option>
-          <option
-            v-for="p in propertiesStore.properties"
-            :key="p.propertyID"
-            :value="p.propertyID"
-          >
-            {{ p.propertyName }}
-          </option>
-        </select>
-      </div>
+          {{ p.propertyName }}
+        </option>
+      </select>
+    </div>
 
-      <!-- Room Type -->
-      <div>
-        <label class="block text-sm font-medium mb-1">Room Type</label>
-        <select
-          v-model="selectedRoomTypeId"
-          @change="onRoomTypeChange"
-          class="w-full border rounded-md p-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
-          :disabled="!selectedPropertyId"
+    <!-- Room Type -->
+    <div>
+      <label class="block text-sm font-medium mb-1">Room Type</label>
+      <select
+        v-model="selectedRoomTypeId"
+        @change="onRoomTypeChange"
+        class="w-full border rounded-md p-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+        :disabled="!selectedPropertyId || disableSelection"
+      >
+        <option value="">Select room type</option>
+        <option
+          v-for="rt in roomTypes"
+          :key="rt.roomTypeID"
+          :value="rt.roomTypeID"
         >
-          <option value="">Select room type</option>
-          <option
-            v-for="rt in roomTypes"
-            :key="rt.roomTypeID"
-            :value="rt.roomTypeID"
-          >
-            {{ rt.name }}
-          </option>
-        </select>
-      </div>
+          {{ rt.name }}
+        </option>
+      </select>
+    </div>
 
-      <!-- Room -->
-      <div>
-        <label class="block text-sm font-medium mb-1">Room</label>
-        <select
-          v-model="form.roomID"
-          class="w-full border rounded-md p-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
-          :disabled="!selectedRoomTypeId"
-        >
-          <option value="">Select room</option>
-          <option v-for="r in rooms" :key="r.roomID" :value="r.roomID">
-            {{ r.name }}
-          </option>
-        </select>
-      </div>
+    <!-- Room -->
+    <div>
+      <label class="block text-sm font-medium mb-1">Room</label>
+      <select
+        v-model="form.roomID"
+        class="w-full border rounded-md p-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+        :disabled="!selectedRoomTypeId || disableSelection"
+      >
+        <option value="">Select room</option>
+        <option v-for="r in rooms" :key="r.roomID" :value="r.roomID">
+          {{ r.name }}
+        </option>
+      </select>
+    </div>
+
 
       <!-- Dates -->
       <div class="grid grid-cols-2 gap-4">
@@ -215,15 +216,6 @@ async function submitBooking() {
 
       <!-- Customer Info -->
       <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium mb-1">Customer ID</label>
-          <input
-            v-model="form.customerID"
-            type="text"
-            placeholder="Enter customer ID"
-            class="w-full border rounded-md p-2"
-          />
-        </div>
         <div>
           <label class="block text-sm font-medium mb-1">Customer Name</label>
           <input v-model="form.customerName" type="text" class="w-full border rounded-md p-2" />

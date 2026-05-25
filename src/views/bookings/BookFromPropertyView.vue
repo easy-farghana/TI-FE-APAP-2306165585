@@ -15,7 +15,6 @@ const bookingStore = useBookingStore();
 // --- Room data from route params or history.state
 const roomID = ref<string>(route.params.roomID as string || '');
 const roomName = ref<string>(route.params.roomName as string || '');
-const roomTypeID = ref<string>(route.params.roomTypeID as string || '');
 const capacity = ref<string>(route.params.capacity as string || '');
 
 // --- Dates: default today 14:00 and tomorrow 12:00
@@ -29,11 +28,9 @@ const checkOutDate = ref(formatISO(checkOutBase, { representation: 'date' }));
 // --- Form object
 const form = ref<AddBookingRequest>({
   roomID: roomID.value,
-  roomTypeID: roomTypeID.value,
   checkInDate: `${checkInDate.value}T14:00:00`,
   checkOutDate: `${checkOutDate.value}T12:00:00`,
   capacity: Number(capacity.value),
-  customerID: '',
   customerName: '',
   customerEmail: '',
   customerPhone: '',
@@ -131,15 +128,6 @@ onMounted(() => {
 
       <!-- Customer Info -->
       <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium mb-1">Customer ID</label>
-          <input
-            v-model="form.customerID"
-            type="text"
-            placeholder="Enter customer ID"
-            class="w-full border rounded-md p-2"
-          />
-        </div>
         <div>
           <label class="block text-sm font-medium mb-1">Customer Name</label>
           <input

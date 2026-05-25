@@ -10,6 +10,14 @@ import BookingsDetailsView from '@/views/bookings/BookingsDetailsView.vue'
 import CreateBookingsView from '@/views/bookings/BookingsFormView.vue'
 import BookFromPropertyView from '@/views/bookings/BookFromPropertyView.vue'
 import IncomeStatisticsView from '@/views/statistics/IncomeStatisticsView.vue'
+import { toast } from 'vue-sonner'
+import { isAccommodationOwner, isAdmin, isAuthenticated, isCustomer, isPartOfService } from '@/utils/rbac'
+import BillView from '@/views/bills/BillView.vue'
+import BillDetailsView from '@/views/bills/BillDetailsView.vue'
+import CreateReviewView from '@/views/reviews/CreateReviewView.vue'
+import PropertyReviewsView from '@/views/reviews/PropertyReviewsView.vue'
+import MyReviewsView from '@/views/reviews/MyReviewsView.vue'
+import ReviewsDetailView from '@/views/reviews/ReviewsDetailView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -65,16 +73,90 @@ const router = createRouter({
       component: CreateBookingsView,
     },
     {
-      path: '/booking/add/:roomID/:roomName/:roomTypeID/:capacity',
+      path: '/booking/add/:propertyID/:roomID/:roomName/:roomTypeID/:capacity',
       name: 'bookings-create-a',
       component: BookFromPropertyView,
     },
     {
-      path: '/chart',
+      path: '/bookings/chart',
       name: 'income-statistics',
       component: IncomeStatisticsView,
     },
+    {
+      path: '/bills',
+      name: 'bills',
+      component: BillView,
+    },
+    {
+      path: '/bills/customer',
+      name: 'bills-customer',
+      component: BillView,
+    },
+    {
+      path: '/bills/service',
+      name: 'bills-service',
+      component: BillView,
+    },
+    {
+      path: '/bill/:billId',
+      name: 'bills-details',
+      component: BillDetailsView,
+    },
+    {
+      path: '/review/create/:bookingID',
+      name: 'create-review',
+      component: CreateReviewView,
+    },
+    {
+      path: '/property/review/:propertyID',
+      name: 'property-reviews',
+      component: PropertyReviewsView,
+    },
+    {
+      path: '/review/my-reviews',
+      name: 'my-reviews',
+      component: MyReviewsView,
+    },
+    {
+      path: '/review/:reviewId',
+      name: 'review-details',
+      component: ReviewsDetailView,
+    },      
   ],
 })
+
+const routeRoles: Record<string, () => boolean> = {
+  '/bills/customer': isCustomer,
+  '/bills/service': isPartOfService,
+  '/bills': isAdmin,
+  '/bill': () => isAdmin() || isCustomer(), 
+  '/statistics': isAdmin,
+  '/booking': () => isAdmin() || isCustomer() || isAccommodationOwner(),
+  '/review/create': isCustomer,
+};
+
+// Navigation guard for RBAC
+router.beforeEach((to, _, next) => {
+  const auth = isAuthenticated();
+
+  // Redirect unauthenticated
+  if (!auth && !['/', '/login', '/register'].includes(to.path)) {
+    toast.error('Token expired, please log in with Flight App');
+    return next('/');
+  }
+
+  // Find matching route
+  const match = Object.keys(routeRoles).find(path => to.path.startsWith(path));
+
+  if (match && routeRoles[match]) {
+    if (!routeRoles[match]()) {
+      toast.error('You do not have permission to access this page');
+      return next('/');
+    }
+}
+
+  next();
+});
+
 
 export default router
